@@ -1,0 +1,37 @@
+name: Terraform DEV Destroy
+
+on:
+  workflow_dispatch:
+
+env:
+  MY_PREFIX: DEV
+  TF_VERSION: 1.2.5
+
+jobs:
+  Terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: $TF_VERSION
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: Terraform init
+        id: init
+        run: terraform init -upgrade
+        # working-directory: ${{ env.working-directory }}
+
+      - name: Terraform validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform destroy
+        id: destroy
+        run: terraform destroy -auto-approve -var=prefix="$MY_PREFIX"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
